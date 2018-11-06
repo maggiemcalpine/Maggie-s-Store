@@ -1,4 +1,5 @@
-﻿@{
+﻿@model IEnumerable<store.Data.Product>
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -55,10 +56,12 @@
 
 <div class="row">
     <div class="col-md-3">
-        <h2>Application uses</h2>
+        <h2>Products</h2>
         <ul>
-            <li>Sample pages using ASP.NET Core MVC</li>
-            <li>Theming using <a href="https://go.microsoft.com/fwlink/?LinkID=398939">Bootstrap</a></li>
+            @foreach(var product in Model)
+            {
+                <li>@product.ID : @product.Name</li>
+            }
         </ul>
     </div>
     <div class="col-md-3">
@@ -92,3 +95,6 @@
         </ul>
     </div>
 </div>
+<form method="post">
+
+</form>

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using store.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pomelo.EntityFrameworkCore;
 
 namespace store
 {
@@ -35,11 +36,44 @@ namespace store
             });
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
+                options.UseMySql(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            //services.AddDefaultIdentity<StoreUser>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.AddIdentity<StoreUser, IdentityRole>()
+               .AddDefaultUI()
+               .AddRoles<IdentityRole>()
+               .AddRoleManager<RoleManager<IdentityRole>>()
+               .AddDefaultTokenProviders()
+               .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddTransient((s) => {
+                return new SendGrid.SendGridClient(Configuration.GetValue<string>("SendGridApiKey"));
+            });
+
+            services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender>((s) =>
+            {
+                return new store.Services.EmailSender(s.GetService<SendGrid.SendGridClient>());
+            });
+
+            services.AddTransient<Braintree.IBraintreeGateway>((s) => {
+                return new Braintree.BraintreeGateway(
+                    Configuration.GetValue<string>("Braintree:Environment"),
+                    Configuration.GetValue<string>("Braintree:MerchantId"),
+                    Configuration.GetValue<string>("Braintree:PublicKey"),
+                    Configuration.GetValue<string>("Braintree:PrivateKey")
+                );
+            });
+
+            services.AddTransient<SmartyStreets.IClient<SmartyStreets.USStreetApi.Lookup>>((s) =>
+            {
+                SmartyStreets.ClientBuilder builder = new SmartyStreets.ClientBuilder(
+                    Configuration.GetValue<string>("SmartyStreets:AuthId"),
+                    Configuration.GetValue<string>("SmartyStreets:AuthToken")
+                    );
+                return builder.BuildUsStreetApiClient();
+            });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 

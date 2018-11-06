@@ -1,0 +1,9 @@
+﻿@model IEnumerable<store.Controllers.OpenTriviaItem>
+@{
+    ViewData["Title"] = "Index";
+}
+<h2>Items</h2>
+@foreach (var item in Model)
+{
+    @item.question
+}
